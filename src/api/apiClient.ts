@@ -1,4 +1,8 @@
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1/admin';
+let baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+if (!baseUrl.endsWith('/api/v1/admin')) {
+  baseUrl = `${baseUrl.replace(/\/$/, '')}/api/v1/admin`;
+}
+export const API_BASE_URL = baseUrl;
 
 export const apiClient = {
   get: async <T>(endpoint: string): Promise<T> => {
