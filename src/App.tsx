@@ -1,10 +1,32 @@
+import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import UsersPage from './pages/UsersPage';
 import MasterDataPage from './pages/MasterDataPage';
+import LoginPage from './pages/LoginPage';
 import './styles/index.css';
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const auth = localStorage.getItem('admin_auth');
+    if (auth === 'true') {
+      setIsAuthenticated(true);
+    } else {
+      setIsAuthenticated(false);
+    }
+  }, []);
+
+  if (isAuthenticated === null) return null; // loading state
+
+  if (!isAuthenticated) {
+    return <LoginPage onLogin={() => {
+      localStorage.setItem('admin_auth', 'true');
+      setIsAuthenticated(true);
+    }} />;
+  }
+
   return (
     <BrowserRouter>
       <Routes>
