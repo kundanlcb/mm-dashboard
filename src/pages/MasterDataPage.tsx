@@ -72,7 +72,7 @@ export default function MasterDataPage() {
         ))}
       </div>
 
-      <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
+      <div className="responsive-flex">
         <div className="glass-card" style={{ flex: '2', minWidth: '300px' }}>
           <div className="flex-between" style={{ marginBottom: '1.5rem' }}>
             <h3>{activeTab} List</h3>
