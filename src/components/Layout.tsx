@@ -1,21 +1,47 @@
+import { useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { Users, Database, Shield, LogOut } from 'lucide-react';
+import { Users, Database, Shield, LogOut, Menu, X } from 'lucide-react';
 
 export default function Layout() {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const closeMenu = () => setIsMobileMenuOpen(false);
+
   return (
     <div className="app-container">
-      <nav className="sidebar">
-        <div className="sidebar-brand">
-          <Shield className="brand-icon" />
+      {/* Mobile Header */}
+      <div className="mobile-header">
+        <div className="sidebar-brand" style={{ margin: 0, padding: 0 }}>
+          <Shield className="brand-icon" size={24} />
           <span>MM Admin</span>
         </div>
+        <button className="menu-btn" onClick={() => setIsMobileMenuOpen(true)}>
+          <Menu size={24} />
+        </button>
+      </div>
+
+      {/* Mobile Overlay */}
+      {isMobileMenuOpen && (
+        <div className="mobile-overlay" onClick={closeMenu}></div>
+      )}
+
+      <nav className={`sidebar ${isMobileMenuOpen ? 'open' : ''}`}>
+        <div className="sidebar-header">
+          <div className="sidebar-brand">
+            <Shield className="brand-icon" />
+            <span>MM Admin</span>
+          </div>
+          <button className="mobile-close-btn" onClick={closeMenu}>
+            <X size={24} />
+          </button>
+        </div>
         
-        <NavLink to="/users" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+        <NavLink to="/users" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} onClick={closeMenu}>
           <Users size={20} />
           <span>User Management</span>
         </NavLink>
         
-        <NavLink to="/master-data" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+        <NavLink to="/master-data" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} onClick={closeMenu}>
           <Database size={20} />
           <span>Master Data</span>
         </NavLink>

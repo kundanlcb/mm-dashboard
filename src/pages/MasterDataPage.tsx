@@ -82,31 +82,33 @@ export default function MasterDataPage() {
           {loading ? (
             <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>Loading...</div>
           ) : (
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th style={{ width: '100px', textAlign: 'right' }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.length === 0 && (
+            <div className="data-table-wrapper">
+              <table className="data-table">
+                <thead>
                   <tr>
-                    <td colSpan={2} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>No items found</td>
+                    <th>Name</th>
+                    <th style={{ width: '100px', textAlign: 'right' }}>Actions</th>
                   </tr>
-                )}
-                {items.map(item => (
-                  <tr key={item.id}>
-                    <td style={{ fontWeight: 600 }}>{item.name}</td>
-                    <td style={{ textAlign: 'right' }}>
-                      <button onClick={() => handleDelete(item.id)} className="btn btn-danger" style={{ padding: '0.4rem' }}>
-                        <Trash2 size={16} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {items.length === 0 && (
+                    <tr>
+                      <td colSpan={2} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>No items found</td>
+                    </tr>
+                  )}
+                  {items.map(item => (
+                    <tr key={item.id}>
+                      <td style={{ fontWeight: 600 }}>{item.name}</td>
+                      <td style={{ textAlign: 'right' }}>
+                        <button onClick={() => handleDelete(item.id)} className="btn btn-danger" style={{ padding: '0.4rem' }}>
+                          <Trash2 size={16} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
 

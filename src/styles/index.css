@@ -234,43 +234,114 @@ body {
   align-items: flex-start;
 }
 
+.mobile-header {
+  display: none;
+}
+
+.mobile-overlay {
+  display: none;
+}
+
+.mobile-close-btn {
+  display: none;
+}
+
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 0 1rem;
+}
+
+.sidebar-header .sidebar-brand {
+  margin-bottom: 0;
+  padding: 0;
+}
+
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
-  .app-container {
-    flex-direction: column;
-    overflow-y: auto;
-  }
-  
-  .sidebar {
-    width: 100%;
-    border-right: none;
-    border-bottom: 1px solid var(--border-light);
-    padding: 1rem;
-    flex-direction: row;
-    flex-wrap: wrap;
+  .mobile-header {
+    display: flex;
     justify-content: space-between;
     align-items: center;
+    padding: 1rem;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border-light);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 40;
   }
-  
-  .sidebar-brand {
-    width: 100%;
-    margin-bottom: 1rem;
-    justify-content: center;
+
+  .menu-btn {
+    background: none;
+    border: none;
+    color: var(--text-main);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+  }
+
+  .app-container {
+    flex-direction: column;
+  }
+
+  .main-content {
+    padding: 1rem;
+    padding-top: 5.5rem; /* Account for fixed header */
+    overflow-y: auto;
+    height: 100vh;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 280px;
+    z-index: 50;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    border-right: 1px solid var(--border-light);
+    padding-top: 1.5rem;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .mobile-overlay {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 45;
+  }
+
+  .sidebar-brand.hidden-mobile {
+    display: none;
+  }
+
+  .mobile-close-btn {
+    display: block;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
   }
   
   .nav-link {
-    flex: 1;
-    justify-content: center;
-    margin-bottom: 0;
-    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    padding: 1rem;
   }
   
   .nav-link span {
-    display: none; /* Icon only on mobile to save space */
-  }
-  
-  .main-content {
-    padding: 1rem;
+    display: inline; /* Ensure text is visible in the sidebar */
   }
   
   .glass-card {
@@ -284,5 +355,10 @@ body {
   
   .page-title {
     font-size: 1.5rem;
+  }
+
+  .data-table-wrapper {
+    overflow-x: auto;
+    width: 100%;
   }
 }
