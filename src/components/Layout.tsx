@@ -1,4 +1,4 @@
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet } from 'react-router-dom';
 import { Users, Database, Shield, LogOut } from 'lucide-react';
 
 export default function Layout() {
