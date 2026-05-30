@@ -1,18 +1,27 @@
 import { useState } from 'react';
 import { Shield } from 'lucide-react';
 
+import { apiClient } from '../api/apiClient';
+
 export default function LoginPage({ onLogin }: { onLogin: () => void }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simple frontend gate for the admin dashboard
-    if (username === 'admin' && password === 'admin123') {
-      onLogin();
-    } else {
-      setError('Invalid username or password');
+    setLoading(true);
+    try {
+      const data = await apiClient.post<{ token: string }>('/login', { username, password });
+      if (data.token) {
+        localStorage.setItem('admin_token', data.token);
+        onLogin();
+      }
+    } catch (err: any) {
+      setError(err.message || 'Invalid username or password');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -54,8 +63,8 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
               required 
             />
           </div>
-          <button type="submit" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: '1rem', padding: '1rem' }}>
-            Sign In
+          <button type="submit" disabled={loading} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: '1rem', padding: '1rem', opacity: loading ? 0.7 : 1 }}>
+            {loading ? 'Signing In...' : 'Sign In'}
           </button>
         </form>
       </div>

@@ -10,8 +10,8 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
   useEffect(() => {
-    const auth = localStorage.getItem('admin_auth');
-    if (auth === 'true') {
+    const token = localStorage.getItem('admin_token');
+    if (token) {
       setIsAuthenticated(true);
     } else {
       setIsAuthenticated(false);
@@ -22,7 +22,6 @@ function App() {
 
   if (!isAuthenticated) {
     return <LoginPage onLogin={() => {
-      localStorage.setItem('admin_auth', 'true');
       setIsAuthenticated(true);
     }} />;
   }

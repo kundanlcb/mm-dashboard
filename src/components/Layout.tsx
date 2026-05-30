@@ -24,7 +24,7 @@ export default function Layout() {
 
         <button 
           onClick={() => {
-            localStorage.removeItem('admin_auth');
+            localStorage.removeItem('admin_token');
             window.location.reload();
           }} 
           className="nav-link" 
