@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { apiClient } from '../api/apiClient';
-import { Trash2, Plus } from 'lucide-react';
+import { Trash2, Plus, ChevronDown, Check } from 'lucide-react';
 
 const TYPES = ['City', 'Gotra', 'Religion', 'Caste', 'Profession'];
 
@@ -9,6 +9,19 @@ export default function MasterDataPage() {
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [newName, setNewName] = useState('');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
 
   const fetchItems = async () => {
     setLoading(true);
@@ -55,24 +68,53 @@ export default function MasterDataPage() {
         <p className="page-subtitle">Manage dropdown lists and enumerations</p>
       </div>
 
-      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
-        {TYPES.map(type => (
-          <button 
-            key={type}
-            onClick={() => setActiveTab(type)}
-            className={`btn ${activeTab === type ? 'btn-primary' : ''}`}
-            style={{ 
-              background: activeTab === type ? 'var(--primary)' : 'var(--bg-card)',
-              color: activeTab === type ? 'white' : 'var(--text-main)',
-              border: `1px solid ${activeTab === type ? 'var(--primary)' : 'var(--border-light)'}`
-            }}
-          >
-            {type}
-          </button>
-        ))}
+      <div className="dropdown-container" ref={dropdownRef}>
+        <button 
+          className="dropdown-trigger" 
+          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+        >
+          {activeTab} Data <ChevronDown size={18} style={{ transform: isDropdownOpen ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s' }} />
+        </button>
+        {isDropdownOpen && (
+          <div className="dropdown-menu">
+            {TYPES.map(type => (
+              <div 
+                key={type}
+                className={`dropdown-item ${activeTab === type ? 'active' : ''}`}
+                onClick={() => {
+                  setActiveTab(type);
+                  setIsDropdownOpen(false);
+                }}
+              >
+                {activeTab === type && <Check size={16} />}
+                <span style={{ marginLeft: activeTab === type ? '0' : '24px' }}>{type}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="responsive-flex">
+        <div className="glass-card" style={{ flex: '1', minWidth: '250px' }}>
+          <h3 style={{ marginBottom: '1.5rem' }}>Add New {activeTab}</h3>
+          <form onSubmit={handleAdd}>
+            <div className="form-group">
+              <label className="form-label">{activeTab} Name</label>
+              <input 
+                className="input-field" 
+                type="text" 
+                placeholder={`Enter ${activeTab.toLowerCase()} name...`}
+                value={newName}
+                onChange={e => setNewName(e.target.value)}
+                required 
+              />
+            </div>
+            <button type="submit" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
+              <Plus size={18} /> Add Record
+            </button>
+          </form>
+        </div>
+
         <div className="glass-card" style={{ flex: '2', minWidth: '300px' }}>
           <div className="flex-between" style={{ marginBottom: '1.5rem' }}>
             <h3>{activeTab} List</h3>
@@ -110,26 +152,6 @@ export default function MasterDataPage() {
               </table>
             </div>
           )}
-        </div>
-
-        <div className="glass-card" style={{ flex: '1', minWidth: '250px' }}>
-          <h3 style={{ marginBottom: '1.5rem' }}>Add New {activeTab}</h3>
-          <form onSubmit={handleAdd}>
-            <div className="form-group">
-              <label className="form-label">{activeTab} Name</label>
-              <input 
-                className="input-field" 
-                type="text" 
-                placeholder={`Enter ${activeTab.toLowerCase()} name...`}
-                value={newName}
-                onChange={e => setNewName(e.target.value)}
-                required 
-              />
-            </div>
-            <button type="submit" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
-              <Plus size={18} /> Add Record
-            </button>
-          </form>
         </div>
       </div>
     </div>

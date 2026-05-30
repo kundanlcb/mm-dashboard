@@ -95,6 +95,61 @@ body {
 }
 
 /* Cards & Elements */
+.dropdown-container {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 2rem;
+}
+
+.dropdown-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 200px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dropdown-trigger:hover {
+  border-color: var(--primary);
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 0.5rem;
+  min-width: 200px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+  z-index: 100;
+  overflow: hidden;
+}
+
+.dropdown-item {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  color: var(--text-main);
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dropdown-item:hover, .dropdown-item.active {
+  background: var(--bg-main);
+  color: var(--primary);
+  font-weight: 600;
+}
+
 .page-header {
   margin-bottom: 2rem;
 }
