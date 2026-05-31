@@ -29,6 +29,15 @@ export const apiClient = {
     if (!res.ok) throw new Error(await res.text());
     return res.json();
   },
+  put: async <T>(endpoint: string, data: any): Promise<T> => {
+    const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+  },
   delete: async (endpoint: string): Promise<void> => {
     const res = await fetch(`${API_BASE_URL}${endpoint}`, { 
       method: 'DELETE',
