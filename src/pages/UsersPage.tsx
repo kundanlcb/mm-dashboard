@@ -2,17 +2,26 @@ import { useState, useEffect } from 'react';
 import { apiClient } from '../api/apiClient';
 import { Edit2, Shield, X, ShieldAlert } from 'lucide-react';
 
-interface User {
+interface UserDetails {
   id: string;
-  name?: string;
-  email?: string;
-  mobileNumber: string;
+  email: string;
   verified: boolean;
-  createdAt?: string;
+  active: boolean;
+  createdAt: string;
+}
+
+interface Biodata {
+  fullName: string | null;
+  phoneNumber: string | null;
+}
+
+interface UserResponse {
+  user: UserDetails;
+  biodata: Biodata | null;
 }
 
 export default function UsersPage() {
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<UserResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [fetchError, setFetchError] = useState('');
 
@@ -26,7 +35,7 @@ export default function UsersPage() {
   const [createMessage, setCreateMessage] = useState<{type: 'success'|'error', text: string} | null>(null);
 
   // Detail/Edit State
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUser, setSelectedUser] = useState<UserResponse | null>(null);
   const [viewMode, setViewMode] = useState<'detail' | 'edit'>('detail');
   const [editName, setEditName] = useState('');
   const [editEmail, setEditEmail] = useState('');
@@ -40,7 +49,7 @@ export default function UsersPage() {
     setLoading(true);
     setFetchError('');
     try {
-      const data = await apiClient.get<User[]>('/users');
+      const data = await apiClient.get<UserResponse[]>('/users');
       setUsers(data);
     } catch (err: any) {
       setFetchError(err.message || 'Failed to fetch users');
@@ -79,17 +88,17 @@ export default function UsersPage() {
     }
   };
 
-  const openDetail = (user: User) => {
-    setSelectedUser(user);
+  const openDetail = (item: UserResponse) => {
+    setSelectedUser(item);
     setViewMode('detail');
   };
 
-  const openEdit = (user: User) => {
-    setSelectedUser(user);
-    setEditName(user.name || '');
-    setEditEmail(user.email || '');
-    setEditMobileNumber(user.mobileNumber);
-    setEditVerified(user.verified);
+  const openEdit = (item: UserResponse) => {
+    setSelectedUser(item);
+    setEditName(item.biodata?.fullName || '');
+    setEditEmail(item.user.email || '');
+    setEditMobileNumber(item.biodata?.phoneNumber || '');
+    setEditVerified(item.user.verified);
     setEditPassword('');
     setEditMessage(null);
     setViewMode('edit');
@@ -115,7 +124,7 @@ export default function UsersPage() {
       if (editPassword) {
         payload.password = editPassword;
       }
-      await apiClient.put(`/users/${selectedUser.id}`, payload);
+      await apiClient.put(`/users/${selectedUser.user.id}`, payload);
       setEditMessage({ type: 'success', text: 'User updated successfully.' });
       fetchUsers();
       setTimeout(() => closeDetail(), 1000);
@@ -138,13 +147,13 @@ export default function UsersPage() {
     }
   };
 
-  const handleStatusToggle = async (user: User) => {
+  const handleStatusToggle = async (item: UserResponse) => {
     try {
-      await apiClient.put(`/users/${user.id}`, { 
-        name: user.name,
-        email: user.email,
-        mobileNumber: user.mobileNumber, 
-        verified: !user.verified 
+      await apiClient.put(`/users/${item.user.id}`, { 
+        name: item.biodata?.fullName,
+        email: item.user.email,
+        mobileNumber: item.biodata?.phoneNumber, 
+        verified: !item.user.verified 
       });
       fetchUsers();
     } catch (err: any) {
@@ -266,24 +275,24 @@ export default function UsersPage() {
                       <td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>No users found</td>
                     </tr>
                   )}
-                  {users.map(user => (
-                    <tr key={user.id} onClick={() => openDetail(user)} style={{ cursor: 'pointer' }} className="table-row-hover">
-                      <td style={{ fontWeight: 500 }}>{user.name || '-'}</td>
-                      <td>{user.email || '-'}</td>
-                      <td style={{ fontWeight: 600 }}>{user.mobileNumber}</td>
+                  {users.map(item => (
+                    <tr key={item.user.id} onClick={() => openDetail(item)} style={{ cursor: 'pointer' }} className="table-row-hover">
+                      <td style={{ fontWeight: 500 }}>{item.biodata?.fullName || '-'}</td>
+                      <td>{item.user.email || '-'}</td>
+                      <td style={{ fontWeight: 600 }}>{item.biodata?.phoneNumber || '-'}</td>
                       <td>
                         <button 
-                          onClick={(e) => { e.stopPropagation(); handleStatusToggle(user); }}
-                          className={`badge ${user.verified ? 'success' : 'danger'}`} 
+                          onClick={(e) => { e.stopPropagation(); handleStatusToggle(item); }}
+                          className={`badge ${item.user.verified ? 'success' : 'danger'}`} 
                           style={{ cursor: 'pointer', border: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                           title="Click to toggle status"
                         >
-                          {user.verified ? <Shield size={12} /> : <ShieldAlert size={12} />}
-                          {user.verified ? 'Verified' : 'Unverified'}
+                          {item.user.verified ? <Shield size={12} /> : <ShieldAlert size={12} />}
+                          {item.user.verified ? 'Verified' : 'Unverified'}
                         </button>
                       </td>
                       <td style={{ textAlign: 'right' }}>
-                        <button onClick={(e) => { e.stopPropagation(); openEdit(user); }} className="btn btn-primary" style={{ padding: '0.4rem', background: 'var(--accent)' }}>
+                        <button onClick={(e) => { e.stopPropagation(); openEdit(item); }} className="btn btn-primary" style={{ padding: '0.4rem', background: 'var(--accent)' }}>
                           <Edit2 size={16} />
                         </button>
                       </td>
@@ -317,29 +326,29 @@ export default function UsersPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
                   <div>
                     <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Name</span>
-                    <div style={{ fontWeight: 500 }}>{selectedUser.name || 'N/A'}</div>
+                    <div style={{ fontWeight: 500 }}>{selectedUser.biodata?.fullName || 'N/A'}</div>
                   </div>
                   <div>
                     <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Email</span>
-                    <div style={{ fontWeight: 500 }}>{selectedUser.email || 'N/A'}</div>
+                    <div style={{ fontWeight: 500 }}>{selectedUser.user.email || 'N/A'}</div>
                   </div>
                   <div>
                     <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Mobile Number</span>
-                    <div style={{ fontWeight: 600 }}>{selectedUser.mobileNumber}</div>
+                    <div style={{ fontWeight: 600 }}>{selectedUser.biodata?.phoneNumber || 'N/A'}</div>
                   </div>
                   <div>
                     <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Status</span>
                     <div>
-                      <span className={`badge ${selectedUser.verified ? 'success' : 'danger'}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                        {selectedUser.verified ? <Shield size={12} /> : <ShieldAlert size={12} />}
-                        {selectedUser.verified ? 'Verified' : 'Unverified'}
+                      <span className={`badge ${selectedUser.user.verified ? 'success' : 'danger'}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        {selectedUser.user.verified ? <Shield size={12} /> : <ShieldAlert size={12} />}
+                        {selectedUser.user.verified ? 'Verified' : 'Unverified'}
                       </span>
                     </div>
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', gap: '10px', marginTop: '1.5rem' }}>
-                  <button type="button" onClick={() => handleDeleteUser(selectedUser.id)} className="btn" style={{ flex: 1, background: 'var(--danger)', color: 'white', border: 'none' }}>
+                  <button type="button" onClick={() => handleDeleteUser(selectedUser.user.id)} className="btn" style={{ flex: 1, background: 'var(--danger)', color: 'white', border: 'none' }}>
                     Remove User
                   </button>
                   <button type="button" onClick={() => openEdit(selectedUser)} className="btn btn-primary" style={{ flex: 1, justifyContent: 'center' }}>
