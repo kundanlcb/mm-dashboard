@@ -396,7 +396,7 @@ export default function UsersPage() {
                       </button>
                     </td>
                     <td style={{ textAlign: 'right' }}>
-                      <button onClick={(e) => { e.stopPropagation(); openEdit(item); }} className="btn btn-primary" style={{ padding: '0.4rem', background: 'var(--accent)' }}>
+                      <button onClick={(e) => { e.stopPropagation(); openEdit(item); }} className="btn" style={{ padding: '0.4rem', background: 'var(--bg-main)', border: '1px solid var(--border-light)', color: 'var(--text-main)' }}>
                         <Edit2 size={16} />
                       </button>
                     </td>
