@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { apiClient } from '../api/apiClient';
-import { Edit2, Shield, X, ShieldAlert, Plus, Search, Filter, SortAsc, SortDesc } from 'lucide-react';
+import { Edit2, Shield, X, ShieldAlert, Plus, Search, Filter, SortAsc, SortDesc, ChevronDown, Check } from 'lucide-react';
 
 interface UserDetails {
   id: string;
@@ -39,6 +39,24 @@ export default function UsersPage() {
   const [createVerified, setCreateVerified] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
   const [createMessage, setCreateMessage] = useState<{type: 'success'|'error', text: string} | null>(null);
+
+  const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
+  const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
+  const filterDropdownRef = useRef<HTMLDivElement>(null);
+  const sortDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (filterDropdownRef.current && !filterDropdownRef.current.contains(event.target as Node)) {
+        setIsFilterDropdownOpen(false);
+      }
+      if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target as Node)) {
+        setIsSortDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Detail/Edit/Create Modal State
   const [selectedUser, setSelectedUser] = useState<UserResponse | null>(null);
@@ -257,30 +275,68 @@ export default function UsersPage() {
           
           <div className="flex-row" style={{ gap: '0.5rem' }}>
             <Filter size={18} style={{ color: 'var(--text-muted)' }} />
-            <select 
-              className="input-field" 
-              style={{ width: 'auto', minWidth: '130px', padding: '0.5rem 1rem' }}
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value as any)}
-            >
-              <option value="all">All Status</option>
-              <option value="verified">Verified</option>
-              <option value="unverified">Unverified</option>
-            </select>
+            <div className="dropdown-container" ref={filterDropdownRef} style={{ marginBottom: 0, zIndex: 11 }}>
+              <button 
+                className="dropdown-trigger" 
+                onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
+                style={{ width: '150px', padding: '0.5rem 1rem' }}
+              >
+                {filterStatus === 'all' ? 'All Status' : filterStatus === 'verified' ? 'Verified' : 'Unverified'} 
+                <ChevronDown size={18} style={{ transform: isFilterDropdownOpen ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s', marginLeft: '8px', color: 'var(--text-muted)' }} />
+              </button>
+              {isFilterDropdownOpen && (
+                <div className="dropdown-menu">
+                  {['all', 'verified', 'unverified'].map(status => (
+                    <div 
+                      key={status}
+                      className={`dropdown-item ${filterStatus === status ? 'active' : ''}`}
+                      onClick={() => {
+                        setFilterStatus(status as any);
+                        setIsFilterDropdownOpen(false);
+                      }}
+                    >
+                      {filterStatus === status && <Check size={16} />}
+                      <span style={{ marginLeft: filterStatus === status ? '0' : '24px' }}>
+                        {status === 'all' ? 'All Status' : status === 'verified' ? 'Verified' : 'Unverified'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="flex-row" style={{ gap: '0.5rem' }}>
             <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 600 }}>Sort by:</span>
-            <select 
-              className="input-field" 
-              style={{ width: 'auto', minWidth: '120px', padding: '0.5rem 1rem' }}
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
-            >
-              <option value="name">Name</option>
-              <option value="email">Email</option>
-              <option value="phone">Phone</option>
-            </select>
+            <div className="dropdown-container" ref={sortDropdownRef} style={{ marginBottom: 0, zIndex: 10 }}>
+              <button 
+                className="dropdown-trigger" 
+                onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
+                style={{ width: '120px', padding: '0.5rem 1rem' }}
+              >
+                {sortBy === 'name' ? 'Name' : sortBy === 'email' ? 'Email' : 'Phone'}
+                <ChevronDown size={18} style={{ transform: isSortDropdownOpen ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s', marginLeft: '8px', color: 'var(--text-muted)' }} />
+              </button>
+              {isSortDropdownOpen && (
+                <div className="dropdown-menu">
+                  {['name', 'email', 'phone'].map(sortOption => (
+                    <div 
+                      key={sortOption}
+                      className={`dropdown-item ${sortBy === sortOption ? 'active' : ''}`}
+                      onClick={() => {
+                        setSortBy(sortOption as any);
+                        setIsSortDropdownOpen(false);
+                      }}
+                    >
+                      {sortBy === sortOption && <Check size={16} />}
+                      <span style={{ marginLeft: sortBy === sortOption ? '0' : '24px' }}>
+                        {sortOption === 'name' ? 'Name' : sortOption === 'email' ? 'Email' : 'Phone'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
             <button 
               onClick={() => setSortOrder(order => order === 'asc' ? 'desc' : 'asc')} 
               className="btn" 
