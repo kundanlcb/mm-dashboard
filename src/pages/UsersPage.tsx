@@ -13,6 +13,28 @@ interface UserDetails {
 interface Biodata {
   fullName: string | null;
   phoneNumber: string | null;
+  gender?: string | null;
+  age?: number | null;
+  gotra?: string | null;
+  mool?: string | null;
+  dateOfBirth?: string | null;
+  birthTime?: string | null;
+  birthPlace?: string | null;
+  fatherName?: string | null;
+  motherName?: string | null;
+  siblingsDetail?: string | null;
+  grandparentName?: string | null;
+  religion?: string | null;
+  caste?: string | null;
+  profession?: string | null;
+  annualIncome?: number | null;
+  location?: string | null;
+  education?: string | null;
+  aboutMe?: string | null;
+  height?: string | null;
+  maritalStatus?: string | null;
+  diet?: string | null;
+  complexion?: string | null;
 }
 
 interface UserResponse {
@@ -68,6 +90,7 @@ export default function UsersPage() {
   const [editMobileNumber, setEditMobileNumber] = useState('');
   const [editVerified, setEditVerified] = useState(false);
   const [editPassword, setEditPassword] = useState('');
+  const [editBiodata, setEditBiodata] = useState<Partial<Biodata>>({});
   const [editLoading, setEditLoading] = useState(false);
   const [editMessage, setEditMessage] = useState<{type: 'success'|'error', text: string} | null>(null);
 
@@ -137,6 +160,7 @@ export default function UsersPage() {
     setEditMobileNumber(item.biodata?.phoneNumber || '');
     setEditVerified(item.user.verified);
     setEditPassword('');
+    setEditBiodata(item.biodata || {});
     setEditMessage(null);
     setViewMode('edit');
   };
@@ -157,7 +181,8 @@ export default function UsersPage() {
         name: editName,
         email: editEmail,
         mobileNumber: editMobileNumber, 
-        verified: editVerified 
+        verified: editVerified,
+        ...editBiodata
       };
       if (editPassword) {
         payload.password = editPassword;
@@ -413,9 +438,9 @@ export default function UsersPage() {
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, 
           background: 'rgba(10, 10, 10, 0.6)', backdropFilter: 'blur(5px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px'
         }}>
-          <div className="glass-card" style={{ width: '100%', maxWidth: '400px', position: 'relative' }}>
+          <div className="glass-card" style={{ width: '100%', maxWidth: viewMode === 'edit' ? '800px' : '400px', maxHeight: '90vh', overflowY: 'auto', position: 'relative' }}>
             <button 
               onClick={closeModal} 
               style={{ position: 'absolute', top: '15px', right: '15px', background: 'transparent', border: 'none', color: 'var(--text-primary)', cursor: 'pointer' }}
@@ -504,10 +529,21 @@ export default function UsersPage() {
             {viewMode === 'detail' && selectedUser && (
               <>
                 <h3 style={{ marginBottom: '1.5rem', marginTop: '5px' }}>User Details</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
-                  <div>
-                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Name</span>
-                    <div style={{ fontWeight: 500 }}>{selectedUser.biodata?.fullName || 'N/A'}</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '2rem' }}>
+                  <div style={{ gridColumn: '1 / -1', display: 'flex', gap: '1rem' }}>
+                    <div style={{ flex: 1 }}>
+                      <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Name</span>
+                      <div style={{ fontWeight: 500 }}>{selectedUser.biodata?.fullName || 'N/A'}</div>
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Status</span>
+                      <div>
+                        <span className={`badge ${selectedUser.user.verified ? 'success' : 'danger'}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          {selectedUser.user.verified ? <Shield size={12} /> : <ShieldAlert size={12} />}
+                          {selectedUser.user.verified ? 'Verified' : 'Unverified'}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                   <div>
                     <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Email</span>
@@ -518,17 +554,92 @@ export default function UsersPage() {
                     <div style={{ fontWeight: 600 }}>{selectedUser.biodata?.phoneNumber || 'N/A'}</div>
                   </div>
                   <div>
-                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Status</span>
-                    <div>
-                      <span className={`badge ${selectedUser.user.verified ? 'success' : 'danger'}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                        {selectedUser.user.verified ? <Shield size={12} /> : <ShieldAlert size={12} />}
-                        {selectedUser.user.verified ? 'Verified' : 'Unverified'}
-                      </span>
-                    </div>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Gender</span>
+                    <div>{selectedUser.biodata?.gender || '-'}</div>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Age</span>
+                    <div>{selectedUser.biodata?.age || '-'}</div>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Date of Birth</span>
+                    <div>{selectedUser.biodata?.dateOfBirth || '-'}</div>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Birth Time</span>
+                    <div>{selectedUser.biodata?.birthTime || '-'}</div>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Birth Place</span>
+                    <div>{selectedUser.biodata?.birthPlace || '-'}</div>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Religion</span>
+                    <div>{selectedUser.biodata?.religion || '-'}</div>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Caste</span>
+                    <div>{selectedUser.biodata?.caste || '-'}</div>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Gotra</span>
+                    <div>{selectedUser.biodata?.gotra || '-'}</div>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Mool</span>
+                    <div>{selectedUser.biodata?.mool || '-'}</div>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Profession</span>
+                    <div>{selectedUser.biodata?.profession || '-'}</div>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Annual Income</span>
+                    <div>{selectedUser.biodata?.annualIncome || '-'}</div>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Education</span>
+                    <div>{selectedUser.biodata?.education || '-'}</div>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Location</span>
+                    <div>{selectedUser.biodata?.location || '-'}</div>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Height</span>
+                    <div>{selectedUser.biodata?.height || '-'}</div>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Marital Status</span>
+                    <div>{selectedUser.biodata?.maritalStatus || '-'}</div>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Diet</span>
+                    <div>{selectedUser.biodata?.diet || '-'}</div>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Complexion</span>
+                    <div>{selectedUser.biodata?.complexion || '-'}</div>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Father's Name</span>
+                    <div>{selectedUser.biodata?.fatherName || '-'}</div>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Mother's Name</span>
+                    <div>{selectedUser.biodata?.motherName || '-'}</div>
+                  </div>
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Siblings Detail</span>
+                    <div>{selectedUser.biodata?.siblingsDetail || '-'}</div>
+                  </div>
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>About Me</span>
+                    <div>{selectedUser.biodata?.aboutMe || '-'}</div>
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '10px', marginTop: '1.5rem' }}>
+                <div style={{ display: 'flex', gap: '10px', marginTop: '1.5rem', position: 'sticky', bottom: 0, background: 'var(--card-bg)', padding: '10px 0', borderTop: '1px solid var(--border)', zIndex: 10 }}>
                   <button type="button" onClick={() => handleDeleteUser(selectedUser.user.id)} className="btn" style={{ flex: 1, background: 'var(--danger)', color: 'white', border: 'none' }}>
                     Remove User
                   </button>
@@ -550,58 +661,147 @@ export default function UsersPage() {
                 )}
 
                 <form onSubmit={handleEditSubmit}>
-                  <div className="form-group">
-                    <label className="form-label">Name</label>
-                    <input 
-                      className="input-field" 
-                      type="text" 
-                      value={editName}
-                      onChange={e => setEditName(e.target.value)}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Email</label>
-                    <input 
-                      className="input-field" 
-                      type="email" 
-                      value={editEmail}
-                      onChange={e => setEditEmail(e.target.value)}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Mobile Number</label>
-                    <input 
-                      className="input-field" 
-                      type="text" 
-                      value={editMobileNumber}
-                      onChange={e => setEditMobileNumber(e.target.value)}
-                      required 
-                    />
-                  </div>
-                  <div className="form-group flex-row" style={{ alignItems: 'center', marginBottom: '1rem' }}>
-                    <input 
-                      type="checkbox" 
-                      id="edit-verified-check"
-                      checked={editVerified}
-                      onChange={e => setEditVerified(e.target.checked)}
-                      style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                    />
-                    <label htmlFor="edit-verified-check" style={{ cursor: 'pointer', fontWeight: 500, fontSize: '0.95rem' }}>
-                      User is Verified
-                    </label>
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Update Password (Optional)</label>
-                    <input 
-                      className="input-field" 
-                      type="password" 
-                      placeholder="Leave blank to keep current password"
-                      value={editPassword}
-                      onChange={e => setEditPassword(e.target.value)}
-                    />
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div className="form-group">
+                      <label className="form-label">Name</label>
+                      <input 
+                        className="input-field" 
+                        type="text" 
+                        value={editName}
+                        onChange={e => { setEditName(e.target.value); setEditBiodata({ ...editBiodata, fullName: e.target.value }); }}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Email</label>
+                      <input 
+                        className="input-field" 
+                        type="email" 
+                        value={editEmail}
+                        disabled
+                        style={{ background: 'var(--bg-main)', color: 'var(--text-muted)', cursor: 'not-allowed' }}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Mobile Number</label>
+                      <input 
+                        className="input-field" 
+                        type="text" 
+                        value={editMobileNumber}
+                        disabled
+                        style={{ background: 'var(--bg-main)', color: 'var(--text-muted)', cursor: 'not-allowed' }}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Update Password</label>
+                      <input 
+                        className="input-field" 
+                        type="password" 
+                        placeholder="Leave blank to keep current"
+                        value={editPassword}
+                        onChange={e => setEditPassword(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">Gender</label>
+                      <input className="input-field" type="text" value={editBiodata.gender || ''} onChange={e => setEditBiodata({...editBiodata, gender: e.target.value})} />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Age</label>
+                      <input className="input-field" type="number" value={editBiodata.age || ''} onChange={e => setEditBiodata({...editBiodata, age: parseInt(e.target.value) || null})} />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Date of Birth</label>
+                      <input className="input-field" type="text" placeholder="YYYY-MM-DD" value={editBiodata.dateOfBirth || ''} onChange={e => setEditBiodata({...editBiodata, dateOfBirth: e.target.value})} />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Birth Time</label>
+                      <input className="input-field" type="text" value={editBiodata.birthTime || ''} onChange={e => setEditBiodata({...editBiodata, birthTime: e.target.value})} />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Birth Place</label>
+                      <input className="input-field" type="text" value={editBiodata.birthPlace || ''} onChange={e => setEditBiodata({...editBiodata, birthPlace: e.target.value})} />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Religion</label>
+                      <input className="input-field" type="text" value={editBiodata.religion || ''} onChange={e => setEditBiodata({...editBiodata, religion: e.target.value})} />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Caste</label>
+                      <input className="input-field" type="text" value={editBiodata.caste || ''} onChange={e => setEditBiodata({...editBiodata, caste: e.target.value})} />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Gotra</label>
+                      <input className="input-field" type="text" value={editBiodata.gotra || ''} onChange={e => setEditBiodata({...editBiodata, gotra: e.target.value})} />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Mool</label>
+                      <input className="input-field" type="text" value={editBiodata.mool || ''} onChange={e => setEditBiodata({...editBiodata, mool: e.target.value})} />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Profession</label>
+                      <input className="input-field" type="text" value={editBiodata.profession || ''} onChange={e => setEditBiodata({...editBiodata, profession: e.target.value})} />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Annual Income</label>
+                      <input className="input-field" type="number" value={editBiodata.annualIncome || ''} onChange={e => setEditBiodata({...editBiodata, annualIncome: parseInt(e.target.value) || null})} />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Education</label>
+                      <input className="input-field" type="text" value={editBiodata.education || ''} onChange={e => setEditBiodata({...editBiodata, education: e.target.value})} />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Location</label>
+                      <input className="input-field" type="text" value={editBiodata.location || ''} onChange={e => setEditBiodata({...editBiodata, location: e.target.value})} />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Height</label>
+                      <input className="input-field" type="text" value={editBiodata.height || ''} onChange={e => setEditBiodata({...editBiodata, height: e.target.value})} />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Marital Status</label>
+                      <input className="input-field" type="text" value={editBiodata.maritalStatus || ''} onChange={e => setEditBiodata({...editBiodata, maritalStatus: e.target.value})} />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Diet</label>
+                      <input className="input-field" type="text" value={editBiodata.diet || ''} onChange={e => setEditBiodata({...editBiodata, diet: e.target.value})} />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Complexion</label>
+                      <input className="input-field" type="text" value={editBiodata.complexion || ''} onChange={e => setEditBiodata({...editBiodata, complexion: e.target.value})} />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Father's Name</label>
+                      <input className="input-field" type="text" value={editBiodata.fatherName || ''} onChange={e => setEditBiodata({...editBiodata, fatherName: e.target.value})} />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Mother's Name</label>
+                      <input className="input-field" type="text" value={editBiodata.motherName || ''} onChange={e => setEditBiodata({...editBiodata, motherName: e.target.value})} />
+                    </div>
+                    <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                      <label className="form-label">Siblings Detail</label>
+                      <input className="input-field" type="text" value={editBiodata.siblingsDetail || ''} onChange={e => setEditBiodata({...editBiodata, siblingsDetail: e.target.value})} />
+                    </div>
+                    <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                      <label className="form-label">About Me</label>
+                      <textarea className="input-field" rows={3} value={editBiodata.aboutMe || ''} onChange={e => setEditBiodata({...editBiodata, aboutMe: e.target.value})}></textarea>
+                    </div>
+
+                    <div className="form-group flex-row" style={{ alignItems: 'center', gridColumn: '1 / -1', marginTop: '0.5rem', marginBottom: '0.5rem' }}>
+                      <input 
+                        type="checkbox" 
+                        id="edit-verified-check"
+                        checked={editVerified}
+                        onChange={e => setEditVerified(e.target.checked)}
+                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                      />
+                      <label htmlFor="edit-verified-check" style={{ cursor: 'pointer', fontWeight: 500, fontSize: '0.95rem', marginLeft: '8px' }}>
+                        User is Verified
+                      </label>
+                    </div>
                   </div>
                   
-                  <div style={{ display: 'flex', gap: '10px', marginTop: '1.5rem' }}>
+                  <div style={{ display: 'flex', gap: '10px', marginTop: '1.5rem', position: 'sticky', bottom: 0, background: 'var(--card-bg)', padding: '10px 0', borderTop: '1px solid var(--border)', zIndex: 10 }}>
                     <button type="button" onClick={() => setViewMode('detail')} className="btn" style={{ flex: 1, background: 'var(--card-bg)', border: '1px solid var(--border)' }}>
                       Cancel
                     </button>
