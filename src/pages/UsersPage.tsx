@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { apiClient } from '../api/apiClient';
-import { Edit2, Shield, X, ShieldAlert } from 'lucide-react';
+import { Edit2, Shield, X, ShieldAlert, Plus, Search, Filter, SortAsc, SortDesc } from 'lucide-react';
 
 interface UserDetails {
   id: string;
@@ -25,6 +25,12 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(false);
   const [fetchError, setFetchError] = useState('');
 
+  // Search, Filter, Sort State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'verified' | 'unverified'>('all');
+  const [sortBy, setSortBy] = useState<'name' | 'email' | 'phone'>('name');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+
   // Create state
   const [createName, setCreateName] = useState('');
   const [createEmail, setCreateEmail] = useState('');
@@ -34,9 +40,11 @@ export default function UsersPage() {
   const [createLoading, setCreateLoading] = useState(false);
   const [createMessage, setCreateMessage] = useState<{type: 'success'|'error', text: string} | null>(null);
 
-  // Detail/Edit State
+  // Detail/Edit/Create Modal State
   const [selectedUser, setSelectedUser] = useState<UserResponse | null>(null);
-  const [viewMode, setViewMode] = useState<'detail' | 'edit'>('detail');
+  const [viewMode, setViewMode] = useState<'detail' | 'edit' | 'create' | null>(null);
+  
+  // Edit State
   const [editName, setEditName] = useState('');
   const [editEmail, setEditEmail] = useState('');
   const [editMobileNumber, setEditMobileNumber] = useState('');
@@ -81,11 +89,22 @@ export default function UsersPage() {
       setCreatePassword('');
       setCreateVerified(false);
       fetchUsers();
+      setTimeout(() => setViewMode(null), 1000);
     } catch (err: any) {
       setCreateMessage({ type: 'error', text: err.message || 'Failed to create user.' });
     } finally {
       setCreateLoading(false);
     }
+  };
+
+  const openCreate = () => {
+    setCreateMessage(null);
+    setCreateName('');
+    setCreateEmail('');
+    setCreateMobileNumber('');
+    setCreatePassword('');
+    setCreateVerified(false);
+    setViewMode('create');
   };
 
   const openDetail = (item: UserResponse) => {
@@ -104,7 +123,8 @@ export default function UsersPage() {
     setViewMode('edit');
   };
 
-  const closeDetail = () => {
+  const closeModal = () => {
+    setViewMode(null);
     setSelectedUser(null);
   };
 
@@ -127,7 +147,7 @@ export default function UsersPage() {
       await apiClient.put(`/users/${selectedUser.user.id}`, payload);
       setEditMessage({ type: 'success', text: 'User updated successfully.' });
       fetchUsers();
-      setTimeout(() => closeDetail(), 1000);
+      setTimeout(() => closeModal(), 1000);
     } catch (err: any) {
       setEditMessage({ type: 'error', text: err.message || 'Failed to update user.' });
     } finally {
@@ -140,7 +160,7 @@ export default function UsersPage() {
     try {
       await apiClient.delete(`/users/${id}`);
       fetchUsers();
-      closeDetail();
+      closeModal();
     } catch (err: any) {
       console.error(err);
       alert('Failed to remove user: ' + err.message);
@@ -162,151 +182,178 @@ export default function UsersPage() {
     }
   };
 
+  const processedUsers = useMemo(() => {
+    let result = [...users];
+
+    // Filter by search query
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(u => 
+        u.biodata?.fullName?.toLowerCase().includes(q) ||
+        u.user.email?.toLowerCase().includes(q) ||
+        u.biodata?.phoneNumber?.toLowerCase().includes(q)
+      );
+    }
+
+    // Filter by status
+    if (filterStatus === 'verified') {
+      result = result.filter(u => u.user.verified);
+    } else if (filterStatus === 'unverified') {
+      result = result.filter(u => !u.user.verified);
+    }
+
+    // Sort
+    result.sort((a, b) => {
+      let valA = '';
+      let valB = '';
+      if (sortBy === 'name') {
+        valA = a.biodata?.fullName || '';
+        valB = b.biodata?.fullName || '';
+      } else if (sortBy === 'email') {
+        valA = a.user.email || '';
+        valB = b.user.email || '';
+      } else if (sortBy === 'phone') {
+        valA = a.biodata?.phoneNumber || '';
+        valB = b.biodata?.phoneNumber || '';
+      }
+
+      valA = valA.toLowerCase();
+      valB = valB.toLowerCase();
+
+      if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
+      if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    return result;
+  }, [users, searchQuery, filterStatus, sortBy, sortOrder]);
+
   return (
     <div>
-      <div className="page-header">
-        <h1 className="page-title">User Management</h1>
-        <p className="page-subtitle">Comprehensive control over all user accounts</p>
+      <div className="page-header flex-between" style={{ alignItems: 'flex-start' }}>
+        <div>
+          <h1 className="page-title">User Management</h1>
+          <p className="page-subtitle">Comprehensive control over all user accounts</p>
+        </div>
+        <button onClick={openCreate} className="btn btn-primary" style={{ marginTop: '32px' }}>
+          <Plus size={18} />
+          Add New User
+        </button>
       </div>
 
-      <div className="responsive-flex">
-        {/* Create User Section */}
-        <div className="glass-card" style={{ flex: '1', minWidth: '300px', alignSelf: 'flex-start' }}>
-          <h3 style={{ marginBottom: '1.5rem' }}>Create New User</h3>
+      <div className="glass-card" style={{ marginBottom: '2rem' }}>
+        <div className="flex-row" style={{ flexWrap: 'wrap', gap: '1rem', alignItems: 'center', marginBottom: '1.5rem' }}>
+          <div style={{ flex: '1', minWidth: '250px', position: 'relative' }}>
+            <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+            <input 
+              type="text" 
+              className="input-field" 
+              placeholder="Search by name, email, or phone..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{ paddingLeft: '38px' }}
+            />
+          </div>
           
-          {createMessage && (
-            <div style={{ padding: '1rem', marginBottom: '1rem', borderRadius: '8px', background: createMessage.type === 'error' ? 'var(--danger)' : 'var(--success)', color: 'white', fontSize: '0.9rem' }}>
-              {createMessage.text}
-            </div>
-          )}
-
-          <form onSubmit={handleCreateSubmit}>
-            <div className="form-group">
-              <label className="form-label">Name</label>
-              <input 
-                className="input-field" 
-                type="text" 
-                placeholder="John Doe"
-                value={createName}
-                onChange={e => setCreateName(e.target.value)}
-              />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Email</label>
-              <input 
-                className="input-field" 
-                type="email" 
-                placeholder="john@example.com"
-                value={createEmail}
-                onChange={e => setCreateEmail(e.target.value)}
-              />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Mobile Number</label>
-              <input 
-                className="input-field" 
-                type="text" 
-                placeholder="+919876543210"
-                value={createMobileNumber}
-                onChange={e => setCreateMobileNumber(e.target.value)}
-                required 
-              />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Temporary Password</label>
-              <input 
-                className="input-field" 
-                type="password" 
-                placeholder="••••••••"
-                value={createPassword}
-                onChange={e => setCreatePassword(e.target.value)}
-                required 
-              />
-            </div>
-            <div className="form-group flex-row" style={{ alignItems: 'center' }}>
-              <input 
-                type="checkbox" 
-                id="create-verified-check"
-                checked={createVerified}
-                onChange={e => setCreateVerified(e.target.checked)}
-                style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-              />
-              <label htmlFor="create-verified-check" style={{ cursor: 'pointer', fontWeight: 500, fontSize: '0.95rem' }}>
-                Mark as Verified
-              </label>
-            </div>
-            
-            <button type="submit" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }} disabled={createLoading}>
-              {createLoading ? 'Creating...' : 'Create User'}
-            </button>
-          </form>
-        </div>
-
-        {/* Users List Section */}
-        <div className="glass-card" style={{ flex: '2', minWidth: '350px' }}>
-          <div className="flex-between" style={{ marginBottom: '1.5rem' }}>
-            <h3>All Users</h3>
-            <span className="badge success">{users.length} users</span>
+          <div className="flex-row" style={{ gap: '0.5rem' }}>
+            <Filter size={18} style={{ color: 'var(--text-muted)' }} />
+            <select 
+              className="input-field" 
+              style={{ width: 'auto', minWidth: '130px', padding: '0.5rem 1rem' }}
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value as any)}
+            >
+              <option value="all">All Status</option>
+              <option value="verified">Verified</option>
+              <option value="unverified">Unverified</option>
+            </select>
           </div>
 
-          {fetchError ? (
-            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--danger)' }}>
-              {fetchError}
-              <br/>
-              <button onClick={fetchUsers} className="btn btn-primary" style={{ marginTop: '1rem' }}>Retry</button>
-            </div>
-          ) : loading && users.length === 0 ? (
-            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>Loading users...</div>
-          ) : (
-            <div className="data-table-wrapper">
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Mobile Number</th>
-                    <th>Status</th>
-                    <th style={{ width: '100px', textAlign: 'right' }}>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.length === 0 && (
-                    <tr>
-                      <td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>No users found</td>
-                    </tr>
-                  )}
-                  {users.map(item => (
-                    <tr key={item.user.id} onClick={() => openDetail(item)} style={{ cursor: 'pointer' }} className="table-row-hover">
-                      <td style={{ fontWeight: 500 }}>{item.biodata?.fullName || '-'}</td>
-                      <td>{item.user.email || '-'}</td>
-                      <td style={{ fontWeight: 600 }}>{item.biodata?.phoneNumber || '-'}</td>
-                      <td>
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); handleStatusToggle(item); }}
-                          className={`badge ${item.user.verified ? 'success' : 'danger'}`} 
-                          style={{ cursor: 'pointer', border: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                          title="Click to toggle status"
-                        >
-                          {item.user.verified ? <Shield size={12} /> : <ShieldAlert size={12} />}
-                          {item.user.verified ? 'Verified' : 'Unverified'}
-                        </button>
-                      </td>
-                      <td style={{ textAlign: 'right' }}>
-                        <button onClick={(e) => { e.stopPropagation(); openEdit(item); }} className="btn btn-primary" style={{ padding: '0.4rem', background: 'var(--accent)' }}>
-                          <Edit2 size={16} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+          <div className="flex-row" style={{ gap: '0.5rem' }}>
+            <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 600 }}>Sort by:</span>
+            <select 
+              className="input-field" 
+              style={{ width: 'auto', minWidth: '120px', padding: '0.5rem 1rem' }}
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as any)}
+            >
+              <option value="name">Name</option>
+              <option value="email">Email</option>
+              <option value="phone">Phone</option>
+            </select>
+            <button 
+              onClick={() => setSortOrder(order => order === 'asc' ? 'desc' : 'asc')} 
+              className="btn" 
+              style={{ padding: '0.5rem', background: 'var(--bg-main)', border: '1px solid var(--border-light)' }}
+              title={`Toggle to ${sortOrder === 'asc' ? 'Descending' : 'Ascending'}`}
+            >
+              {sortOrder === 'asc' ? <SortAsc size={18} /> : <SortDesc size={18} />}
+            </button>
+          </div>
         </div>
+
+        <div className="flex-between" style={{ marginBottom: '1.5rem' }}>
+          <h3 style={{ fontSize: '1.25rem', margin: 0 }}>Users List</h3>
+          <span className="badge success">{processedUsers.length} users</span>
+        </div>
+
+        {fetchError ? (
+          <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--danger)' }}>
+            {fetchError}
+            <br/>
+            <button onClick={fetchUsers} className="btn btn-primary" style={{ marginTop: '1rem' }}>Retry</button>
+          </div>
+        ) : loading && users.length === 0 ? (
+          <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>Loading users...</div>
+        ) : (
+          <div className="data-table-wrapper">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Mobile Number</th>
+                  <th>Status</th>
+                  <th style={{ width: '100px', textAlign: 'right' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {processedUsers.length === 0 && (
+                  <tr>
+                    <td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>No users found matching your criteria</td>
+                  </tr>
+                )}
+                {processedUsers.map(item => (
+                  <tr key={item.user.id} onClick={() => openDetail(item)} style={{ cursor: 'pointer' }} className="table-row-hover">
+                    <td style={{ fontWeight: 500 }}>{item.biodata?.fullName || '-'}</td>
+                    <td>{item.user.email || '-'}</td>
+                    <td style={{ fontWeight: 600 }}>{item.biodata?.phoneNumber || '-'}</td>
+                    <td>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); handleStatusToggle(item); }}
+                        className={`badge ${item.user.verified ? 'success' : 'danger'}`} 
+                        style={{ cursor: 'pointer', border: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                        title="Click to toggle status"
+                      >
+                        {item.user.verified ? <Shield size={12} /> : <ShieldAlert size={12} />}
+                        {item.user.verified ? 'Verified' : 'Unverified'}
+                      </button>
+                    </td>
+                    <td style={{ textAlign: 'right' }}>
+                      <button onClick={(e) => { e.stopPropagation(); openEdit(item); }} className="btn btn-primary" style={{ padding: '0.4rem', background: 'var(--accent)' }}>
+                        <Edit2 size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
-      {/* Detail/Edit Modal Overlay */}
-      {selectedUser && (
+      {/* Modal Overlay for Create/Detail/Edit */}
+      {viewMode && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, 
           background: 'rgba(10, 10, 10, 0.6)', backdropFilter: 'blur(5px)',
@@ -314,13 +361,91 @@ export default function UsersPage() {
         }}>
           <div className="glass-card" style={{ width: '100%', maxWidth: '400px', position: 'relative' }}>
             <button 
-              onClick={closeDetail} 
+              onClick={closeModal} 
               style={{ position: 'absolute', top: '15px', right: '15px', background: 'transparent', border: 'none', color: 'var(--text-primary)', cursor: 'pointer' }}
             >
               <X size={24} />
             </button>
             
-            {viewMode === 'detail' ? (
+            {viewMode === 'create' && (
+              <>
+                <h3 style={{ marginBottom: '1.5rem', marginTop: '5px' }}>Create New User</h3>
+                
+                {createMessage && (
+                  <div style={{ padding: '1rem', marginBottom: '1rem', borderRadius: '8px', background: createMessage.type === 'error' ? 'var(--danger)' : 'var(--success)', color: 'white', fontSize: '0.9rem' }}>
+                    {createMessage.text}
+                  </div>
+                )}
+
+                <form onSubmit={handleCreateSubmit}>
+                  <div className="form-group">
+                    <label className="form-label">Name</label>
+                    <input 
+                      className="input-field" 
+                      type="text" 
+                      placeholder="John Doe"
+                      value={createName}
+                      onChange={e => setCreateName(e.target.value)}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Email</label>
+                    <input 
+                      className="input-field" 
+                      type="email" 
+                      placeholder="john@example.com"
+                      value={createEmail}
+                      onChange={e => setCreateEmail(e.target.value)}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Mobile Number</label>
+                    <input 
+                      className="input-field" 
+                      type="text" 
+                      placeholder="+919876543210"
+                      value={createMobileNumber}
+                      onChange={e => setCreateMobileNumber(e.target.value)}
+                      required 
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Temporary Password</label>
+                    <input 
+                      className="input-field" 
+                      type="password" 
+                      placeholder="••••••••"
+                      value={createPassword}
+                      onChange={e => setCreatePassword(e.target.value)}
+                      required 
+                    />
+                  </div>
+                  <div className="form-group flex-row" style={{ alignItems: 'center' }}>
+                    <input 
+                      type="checkbox" 
+                      id="create-verified-check"
+                      checked={createVerified}
+                      onChange={e => setCreateVerified(e.target.checked)}
+                      style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                    />
+                    <label htmlFor="create-verified-check" style={{ cursor: 'pointer', fontWeight: 500, fontSize: '0.95rem' }}>
+                      Mark as Verified
+                    </label>
+                  </div>
+                  
+                  <div style={{ display: 'flex', gap: '10px', marginTop: '1.5rem' }}>
+                    <button type="button" onClick={closeModal} className="btn" style={{ flex: 1, background: 'var(--card-bg)', border: '1px solid var(--border)' }}>
+                      Cancel
+                    </button>
+                    <button type="submit" className="btn btn-primary" style={{ flex: 1, justifyContent: 'center' }} disabled={createLoading}>
+                      {createLoading ? 'Creating...' : 'Create User'}
+                    </button>
+                  </div>
+                </form>
+              </>
+            )}
+
+            {viewMode === 'detail' && selectedUser && (
               <>
                 <h3 style={{ marginBottom: '1.5rem', marginTop: '5px' }}>User Details</h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
@@ -356,7 +481,9 @@ export default function UsersPage() {
                   </button>
                 </div>
               </>
-            ) : (
+            )}
+
+            {viewMode === 'edit' && (
               <>
                 <h3 style={{ marginBottom: '1.5rem', marginTop: '5px' }}>Edit User</h3>
                 

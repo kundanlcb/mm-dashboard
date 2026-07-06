@@ -5,11 +5,15 @@
   color: var(--accent);
   background: var(--accent-bg);
   border: 2px solid transparent;
-  transition: border-color 0.3s;
+  transition: all 0.2s ease;
   margin-bottom: 24px;
+  cursor: pointer;
 
   &:hover {
     border-color: var(--accent-border);
+  }
+  &:active {
+    transform: scale(0.97);
   }
   &:focus-visible {
     outline: 2px solid var(--accent);
@@ -125,10 +129,15 @@
     align-items: center;
     gap: 8px;
     text-decoration: none;
-    transition: box-shadow 0.3s;
+    transition: all 0.2s ease;
 
     &:hover {
       box-shadow: var(--shadow);
+      transform: translateY(-2px);
+    }
+    &:active {
+      transform: scale(0.97) translateY(0);
+      box-shadow: none;
     }
     .button-icon {
       height: 18px;
